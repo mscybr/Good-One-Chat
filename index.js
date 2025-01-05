@@ -178,7 +178,14 @@ function store_message(from_user, to_user, message){
 function get_messages(_from, room_name){
   let msgs = [];
   let from = _from > -1 ? _from : 0;
-  if(messages[room_name]) msgs = messages[room_name].slice(from, from + max_messages_per_request);
+  if(messages[room_name]){
+    let arr = messages[room_name].slice(from, from + max_messages_per_request);
+    let returned_array = [];
+    arr.forEach((element,i) => {
+      returned_array[i+from] = element;
+    });
+    msgs = returned_array;
+  };
   return msgs;
 }
 
