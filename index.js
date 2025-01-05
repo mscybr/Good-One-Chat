@@ -182,7 +182,7 @@ function get_messages(_from, room_name){
     let arr = messages[room_name].slice(from, from + max_messages_per_request);
     let returned_array = {};
     arr.forEach((element,i) => {
-      returned_array[i+from] = element;
+      returned_array[Number(i)+Number(from)] = element;
     });
     msgs = returned_array;
   };
