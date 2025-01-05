@@ -12,10 +12,11 @@
     "body-parser": "^1.18.3",
     "express": "^4.16.3",
     "mongoose": "^6.3.3",
+    "node-fetch": "^3.3.2",
     "socket.io": "^4.5.0"
   },
   "devDependencies": {
     "jasmine": "^3.1.0",
-    "request": "^2.87.0"
+    "request": "^2.88.2"
   }
 }
