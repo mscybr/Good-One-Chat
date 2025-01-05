@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "demo chat app",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "jasmine"
   },
