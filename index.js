@@ -180,7 +180,7 @@ function get_messages(_from, room_name){
   let from = _from > -1 ? _from : 0;
   if(messages[room_name]){
     let arr = messages[room_name].slice(from, from + max_messages_per_request);
-    let returned_array = [];
+    let returned_array = {};
     arr.forEach((element,i) => {
       returned_array[i+from] = element;
     });
