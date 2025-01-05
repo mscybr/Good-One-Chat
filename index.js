@@ -132,7 +132,7 @@ io.on('connection', (socket) =>{
                 message: message,
                 from_user: user_id,
               });
-              user_chats[user_id][to_user].new_messages.push(message);
+              user_chats[user_id][to_user].new_messages.unshift(message);
             }
           }else{
             // send via firebase
@@ -163,7 +163,7 @@ function get_room_name( first, second){
 function store_message(from_user, to_user, message){
   let room_name = get_room_name(from_user, to_user)
   if(messages[room_name]) {
-    messages[room_name].push({
+    messages[room_name].unshift({
       "from_user": from_user,
       "message": message
     });
