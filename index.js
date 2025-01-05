@@ -1,8 +1,22 @@
-var express = require('express');
-var bodyParser = require('body-parser')
+import fetch from 'node-fetch';
+import express from 'express';
+import bodyParser from 'body-parser';
+// var express = require('express');
+// var bodyParser = require('body-parser');
+// var fetch = require('nodefetch');
+import json from 'body-parser'
+import _http from 'http'
+import {Server } from 'socket.io';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const USER_ASSETS_URL = "http://162.254.35.98/api/users/";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+// const { json } = require('body-parser');
 var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http,  {
+var http = _http.Server(app);
+let io = new Server(http,  {
   cors: {
     origin: '*',
   }
@@ -10,6 +24,9 @@ var io = require('socket.io')(http,  {
 let connected_users = {};
 let connected_users_ids = {};
 let user_chats = {};
+let messages = {};
+let user_assets = {};
+let max_messages_per_request = 50;
 // let rooms = {
 //   "room1":1,
 //   "room2":1,
@@ -46,9 +63,10 @@ app.use(bodyParser.urlencoded({extended: false}))
 
 io.on('connection', (socket) =>{
   let initialized = false;
-  socket.on('init', (user_id)=>{ 
+  socket.on('init', (user_id)=>{
     if(initialized == false){
       initialized = true;
+      fetch_user_assets(user_id);
       if((user_id in user_chats) == false) user_chats[user_id] = {};
       console.log('a user is connected: ', user_id);
       connected_users[socket.id] = user_id;
@@ -61,7 +79,7 @@ io.on('connection', (socket) =>{
       //   console.log(arg1, arg2);
       // })
 
-      socket.on('join-room', ( to_user) => {
+      socket.on('join-room', (to_user) => {
         let room_name = get_room_name(user_id, to_user);
         socket.join(room_name);
         connected_users_ids[user_id].connected_rooms[room_name] = true;
@@ -77,8 +95,9 @@ io.on('connection', (socket) =>{
         delete connected_users[socket.id];
       });
 
-      socket.on('get-chats', () =>{
-        socket.emit('chats', JSON.stringify(user_chats[user_id]));
+      socket.on('get-chats', async() =>{
+        let chts = await get_user_chats(user_id);
+        socket.emit('chats', JSON.stringify( chts ));
         for (const key in user_chats[user_id]) {
           if (Object.hasOwnProperty.call(user_chats[user_id], key)) {
             const element = user_chats[user_id][key];
@@ -86,8 +105,14 @@ io.on('connection', (socket) =>{
           }
         }
       });
+
+      socket.on('get-messages', (with_user, from_message_id=0) =>{
+        let room_name = get_room_name(user_id, with_user);
+        socket.emit('messages', JSON.stringify(get_messages(from_message_id, room_name)));
+      });
       socket.on('send-message', ( to_user, message) => {
           let room_name = get_room_name(user_id, to_user)
+          store_message(user_id, to_user, message);
           if((user_id in user_chats) == false) user_chats[user_id] = {};
           if((to_user in user_chats) == false) user_chats[to_user] = {};
           if((to_user in user_chats[user_id]) == false) user_chats[user_id][to_user] = {new_messages:[]};
@@ -132,4 +157,74 @@ function get_room_name( first, second){
   let smaller = first > second ? second : first;
   let larger = first > second ? first : second;
   return `${smaller}_${larger}`;
+}
+
+
+function store_message(from_user, to_user, message){
+  let room_name = get_room_name(from_user, to_user)
+  if(messages[room_name]) {
+    messages[room_name].push({
+      "from_user": from_user,
+      "message": message
+    });
+  }else{
+    messages[room_name] = [{
+      "from_user": from_user,
+      "message": message
+    }];
+  }
+}
+
+function get_messages(_from, room_name){
+  let msgs = [];
+  let from = _from > -1 ? _from : 0;
+  if(messages[room_name]) msgs = messages[room_name].slice(from, from + max_messages_per_request);
+  return msgs;
+}
+
+async function fetch_user_assets(user_id){
+
+  if( user_assets[user_id] == null ){
+    let ft = await fetch(USER_ASSETS_URL+user_id);
+    let json = await ft.json();
+    if(JSON.stringify(json) != "{}") user_assets[user_id] = json
+  }
+}
+
+async function get_user_assets(usr_id){
+  let assets = {};
+  await fetch_user_assets(usr_id);
+  if(user_assets[usr_id] != null){
+     assets = user_assets[usr_id];
+  }
+  return assets;
+}
+
+async function get_user_chats(user_id){
+  let _user_chats = user_chats[user_id];
+  let chats = {};
+  let keys = [];
+  // for (const key in _user_chats)
+  //   if (_user_chats.hasOwnProperty(key))
+  //     keys.push(key);
+  // for await ( let cht_key of keys ){
+  //    const element = _user_chats[cht_key];
+  //    let usr_info = await get_user_assets(cht_key);
+  //     chats[cht_key] = {
+  //       "user_info" :  usr_info,
+  //       ...element
+  //     }
+
+  // }
+  for (const key in _user_chats) {
+    if (Object.hasOwnProperty.call(_user_chats, key)) {
+      const element = _user_chats[key];
+      let usr_info = await get_user_assets(key);
+      chats[key] = {
+        "user_info" :  usr_info,
+        ...element
+      }
+    }
+  }
+  return chats
 }
