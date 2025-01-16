@@ -9,6 +9,7 @@ import _http from 'http'
 import {Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { time } from 'console';
 const USER_ASSETS_URL = "http://162.254.35.98/api/users/";
 // const UPDATING_MESSAGES_LIST_URL = "http://127.0.0.1:8000/api/chat/update_chat";
 const UPDATING_MESSAGES_LIST_URL = "http://162.254.35.98/api/chat/update_chat";
@@ -167,12 +168,14 @@ async function store_message(from_user, to_user, message){
   if(messages[room_name]) {
     messages[room_name].unshift({
       "from_user": from_user,
-      "message": message
+      "message": message,
+      "time" : Math.round(Date.now() / 1000)
     });
   }else{
     messages[room_name] = [{
       "from_user": from_user,
-      "message": message
+      "message": message,
+      "time" : Math.round(Date.now() / 1000)
     }];
   }
      const rawResponse = await fetch(UPDATING_MESSAGES_LIST_URL, {
