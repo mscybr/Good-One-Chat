@@ -10,6 +10,8 @@ import {Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 const USER_ASSETS_URL = "http://162.254.35.98/api/users/";
+// const UPDATING_MESSAGES_LIST_URL = "http://127.0.0.1:8000/api/chat/update_chat";
+const UPDATING_MESSAGES_LIST_URL = "http://162.254.35.98/api/chat/update_chat";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -160,7 +162,7 @@ function get_room_name( first, second){
 }
 
 
-function store_message(from_user, to_user, message){
+async function store_message(from_user, to_user, message){
   let room_name = get_room_name(from_user, to_user)
   if(messages[room_name]) {
     messages[room_name].unshift({
@@ -173,6 +175,17 @@ function store_message(from_user, to_user, message){
       "message": message
     }];
   }
+     const rawResponse = await fetch(UPDATING_MESSAGES_LIST_URL, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({from: from_user, to: to_user, latest_message: message})
+    });
+    const content = await rawResponse.json();
+    console.log(content);
+    return content;
 }
 
 function get_messages(_from, room_name){
