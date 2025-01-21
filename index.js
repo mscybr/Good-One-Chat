@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import express from 'express';
 import bodyParser from 'body-parser';
+import fs from 'fs';
 // var express = require('express');
 // var bodyParser = require('body-parser');
 // var fetch = require('nodefetch');
@@ -60,6 +61,16 @@ app.use(bodyParser.urlencoded({extended: false}))
 //     var message = new Message(data);
 //     var savedMessage = await message.save()
 // });
+const datapath = __dirname+"/total_data.json";
+
+const dt = read(datapath);
+if(dt){
+  connected_users = dt.connected_users
+  connected_users_ids = dt.connected_users_ids
+  user_chats = dt.user_chats
+  messages = dt.messages
+  user_assets = dt.user_assets
+}
 
 
 
@@ -77,6 +88,7 @@ io.on('connection', (socket) =>{
         socket_id:socket.id,
         connected_rooms:{}
       };
+      write();
 
       // socket.on('test', (arg1=null, arg2=null)=>{
       //   console.log(arg1, arg2);
@@ -86,16 +98,19 @@ io.on('connection', (socket) =>{
         let room_name = get_room_name(user_id, to_user);
         socket.join(room_name);
         connected_users_ids[user_id].connected_rooms[room_name] = true;
+        write();
       });
       socket.on('leave-room', (to_user) => {
         let room_name = get_room_name(user_id, to_user);
         socket.leave(room_name);
         delete connected_users_ids[user_id].connected_rooms[room_name];
+        write();
       });
 
       socket.on("disconnect", ()=>{
         delete connected_users_ids[connected_users[socket.id].user_id];
         delete connected_users[socket.id];
+        write();
       });
 
       socket.on('get-chats', async() =>{
@@ -107,6 +122,7 @@ io.on('connection', (socket) =>{
             user_chats[user_id][key]["new_messages"] = {};
           }
         }
+        write();
       });
 
       socket.on('get-messages', (with_user, from_message_id=0) =>{
@@ -140,6 +156,7 @@ io.on('connection', (socket) =>{
           }else{
             // send via firebase
           }
+          write();
 
       });
 
@@ -155,6 +172,33 @@ io.on('connection', (socket) =>{
 var server = http.listen(3000, () => {
   console.log('server is running on port', server.address().port);
 });
+
+
+function write(){
+  let dt = {};
+  dt.connected_users = connected_users
+  dt.connected_users_ids = connected_users_ids 
+  dt.user_chats = user_chats
+  dt.messages = messages 
+  dt.user_assets = user_assets 
+  write_to_file(dt, datapath)
+}
+function write_to_file(array, path) {
+    fs.writeFileSync(path, JSON.stringify(array));
+}
+
+function read(path) {
+  try {
+    const fileContent = fs.readFileSync(path);
+    const array = JSON.parse(fileContent);
+    return array;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+  
+}
+
 
 function get_room_name( first, second){
   let smaller = first > second ? second : first;
@@ -188,6 +232,7 @@ async function store_message(from_user, to_user, message){
     });
     const content = await rawResponse.json();
     console.log(content);
+    write();
     return content;
 }
 
