@@ -68,9 +68,8 @@ if(dt){
   connected_users = dt.connected_users
   connected_users_ids = dt.connected_users_ids
   user_chats = dt.user_chats
-  messages =  Object.values(dt.messages);//dt.messages
+  messages = dt.messages
   user_assets = dt.user_assets
-  
 }
 
 
@@ -138,7 +137,7 @@ io.on('connection', (socket) =>{
           if((to_user in user_chats[user_id]) == false) user_chats[user_id][to_user] = {new_messages:[], latest_message:""};
           if((user_id in user_chats[to_user]) == false) user_chats[to_user][user_id] = {new_messages:[], latest_message:""};
 
-          user_chats[user_id][to_user].latest_message = message;
+              user_chats[user_id][to_user].latest_message = message;
           // check if the reciever is connected
           if( to_user in connected_users_ids ){
 
@@ -153,8 +152,10 @@ io.on('connection', (socket) =>{
                 message: message,
                 from_user: user_id,
               });
-              user_chats[user_id][to_user].new_messages = Object.values(user_chats[user_id][to_user].new_messages);
-              user_chats[user_id][to_user].new_messages.unshift(message);
+              
+              // user_chats[user_id][to_user].new_messages.unshift(message);
+              let kys = Object.keys(user_chats[user_id][to_user].new_messages);
+              user_chats[user_id][to_user].new_messages[kys[kys.length]] = message;
             }
           }else{
             // send via firebase
@@ -213,11 +214,17 @@ function get_room_name( first, second){
 async function store_message(from_user, to_user, message){
   let room_name = get_room_name(from_user, to_user)
   if(messages[room_name]) {
-    messages[room_name].unshift({
+    // messages[room_name].unshift({
+    //   "from_user": from_user,
+    //   "message": message,
+    //   "time" : Math.round(Date.now() / 1000)
+    // });
+    let kys = Object.keys(messages[room_name]);
+    messages[room_name][kys[kys.length]] = {
       "from_user": from_user,
       "message": message,
       "time" : Math.round(Date.now() / 1000)
-    });
+    };
   }else{
     messages[room_name] = [{
       "from_user": from_user,
