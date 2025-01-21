@@ -68,8 +68,9 @@ if(dt){
   connected_users = dt.connected_users
   connected_users_ids = dt.connected_users_ids
   user_chats = dt.user_chats
-  messages = dt.messages
+  messages =  Object.values(dt.messages);//dt.messages
   user_assets = dt.user_assets
+  
 }
 
 
@@ -152,7 +153,7 @@ io.on('connection', (socket) =>{
                 message: message,
                 from_user: user_id,
               });
-              
+              user_chats[user_id][to_user].new_messages = Object.values(user_chats[user_id][to_user].new_messages);
               user_chats[user_id][to_user].new_messages.unshift(message);
             }
           }else{
