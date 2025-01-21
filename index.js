@@ -119,7 +119,7 @@ io.on('connection', (socket) =>{
         for (const key in user_chats[user_id]) {
           if (Object.hasOwnProperty.call(user_chats[user_id], key)) {
             const element = user_chats[user_id][key];
-            user_chats[user_id][key]["new_messages"] = {};
+            user_chats[user_id][key]["new_message"] = "";
           }
         }
         write();
@@ -134,8 +134,8 @@ io.on('connection', (socket) =>{
           store_message(user_id, to_user, message);
           if((user_id in user_chats) == false) user_chats[user_id] = {};
           if((to_user in user_chats) == false) user_chats[to_user] = {};
-          if((to_user in user_chats[user_id]) == false) user_chats[user_id][to_user] = {new_messages:[], latest_message:""};
-          if((user_id in user_chats[to_user]) == false) user_chats[to_user][user_id] = {new_messages:[], latest_message:""};
+          if((to_user in user_chats[user_id]) == false) user_chats[user_id][to_user] = {new_message:"", latest_message:""};
+          if((user_id in user_chats[to_user]) == false) user_chats[to_user][user_id] = {new_message:"", latest_message:""};
 
           // check if the reciever is connected
           if( to_user in connected_users_ids ){
@@ -152,8 +152,7 @@ io.on('connection', (socket) =>{
                 from_user: user_id,
               });
               
-              user_chats[user_id][to_user].latest_message = message;
-              user_chats[user_id][to_user].new_messages.unshift(message);
+              user_chats[user_id][to_user].new_message = message;
             }
           }else{
             // send via firebase
