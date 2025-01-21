@@ -134,9 +134,10 @@ io.on('connection', (socket) =>{
           store_message(user_id, to_user, message);
           if((user_id in user_chats) == false) user_chats[user_id] = {};
           if((to_user in user_chats) == false) user_chats[to_user] = {};
-          if((to_user in user_chats[user_id]) == false) user_chats[user_id][to_user] = {new_messages:[]};
-          if((user_id in user_chats[to_user]) == false) user_chats[to_user][user_id] = {new_messages:[]};
+          if((to_user in user_chats[user_id]) == false) user_chats[user_id][to_user] = {new_messages:[], latest_message:""};
+          if((user_id in user_chats[to_user]) == false) user_chats[to_user][user_id] = {new_messages:[], latest_message:""};
 
+          user_chats[user_id][to_user].latest_message = message;
           // check if the reciever is connected
           if( to_user in connected_users_ids ){
 
@@ -151,6 +152,7 @@ io.on('connection', (socket) =>{
                 message: message,
                 from_user: user_id,
               });
+              
               user_chats[user_id][to_user].new_messages.unshift(message);
             }
           }else{
@@ -231,7 +233,7 @@ async function store_message(from_user, to_user, message){
       body: JSON.stringify({from: from_user, to: to_user, latest_message: message})
     });
     const content = await rawResponse.json();
-    console.log(content);
+    // console.log(content);
     write();
     return content;
 }
