@@ -154,7 +154,9 @@ io.on('connection', (socket) =>{
               
               user_chats[user_id][to_user].new_message = message;
             }
-          }else{
+          }else{  
+            console.log("notifying user");
+            
               notify(to_user, "you have a new message", message);
           }
           write();
@@ -310,6 +312,7 @@ async function notify(user_id, title, message){
       },
       body: JSON.stringify(jsonData), // Convert JavaScript object to JSON string
     })
-    // let json = await ft.json();
+    let txt = await ft.text();
 
 }
+
