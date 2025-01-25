@@ -231,7 +231,7 @@ async function store_message(from_user, to_user, message){
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({from: from_user, to: to_user, latest_messages: {message}})
+      body: JSON.stringify({from: from_user, to: to_user, latest_message: message})
     });
     const content = await rawResponse.json();
     console.log(content);
@@ -315,4 +315,5 @@ async function notify(user_id, title, message){
     let txt = await ft.text();
 
 }
+
 
