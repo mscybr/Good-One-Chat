@@ -118,7 +118,7 @@ io.on('connection', (socket) =>{
         for (const key in user_chats[user_id]) {
           if (Object.hasOwnProperty.call(user_chats[user_id], key)) {
             const element = user_chats[user_id][key];
-            user_chats[user_id][key]["new_message"] = "";
+            // user_chats[user_id][key]["new_message"] = "";
           }
         }
         write();
