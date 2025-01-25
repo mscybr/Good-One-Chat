@@ -12,8 +12,8 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { time } from 'console';
 const USER_ASSETS_URL = "http://162.254.35.98/api/users/";
-// const UPDATING_MESSAGES_LIST_URL = "http://127.0.0.1:8000/api/chat/update_chat";
 const UPDATING_MESSAGES_LIST_URL = "http://162.254.35.98/api/chat/update_chat";
+const NOTIFICATIONS_URL = "http://162.254.35.98/api/notification";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -134,8 +134,8 @@ io.on('connection', (socket) =>{
           store_message(user_id, to_user, message);
           if((user_id in user_chats) == false) user_chats[user_id] = {};
           if((to_user in user_chats) == false) user_chats[to_user] = {};
-          if((to_user in user_chats[user_id]) == false) user_chats[user_id][to_user] = {new_message:"", latest_message:""};
-          if((user_id in user_chats[to_user]) == false) user_chats[to_user][user_id] = {new_message:"", latest_message:""};
+          if((to_user in user_chats[user_id]) == false) user_chats[user_id][to_user] = {new_message:"", latest_messages:{}};
+          if((user_id in user_chats[to_user]) == false) user_chats[to_user][user_id] = {new_message:"", latest_messages:{}};
 
           // check if the reciever is connected
           if( to_user in connected_users_ids ){
@@ -155,7 +155,7 @@ io.on('connection', (socket) =>{
               user_chats[user_id][to_user].new_message = message;
             }
           }else{
-            // send via firebase
+              notify(to_user, "you have a new message", message);
           }
           write();
 
@@ -229,7 +229,7 @@ async function store_message(from_user, to_user, message){
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({from: from_user, to: to_user, latest_message: message})
+      body: JSON.stringify({from: from_user, to: to_user, latest_messages: {message}})
     });
     const content = await rawResponse.json();
     console.log(content);
@@ -296,4 +296,20 @@ async function get_user_chats(user_id){
     }
   }
   return chats
+}
+
+async function notify(user_id, title, message){
+  let jsonData ={
+    "title": title,
+    "body": message
+  };
+   let ft = await fetch(NOTIFICATIONS_URL+"/"+user_id, {
+      method: "POST", // HTTP method
+      headers: {
+        "Content-Type": "application/json", // Specify JSON format
+      },
+      body: JSON.stringify(jsonData), // Convert JavaScript object to JSON string
+    })
+    // let json = await ft.json();
+
 }
