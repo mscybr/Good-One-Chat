@@ -114,11 +114,15 @@ io.on('connection', (socket) =>{
 
       socket.on('get-chats', async() =>{
         let chts = await get_user_chats(user_id);
+        let is_sent_by_me = false;
+        let room_name = get_room_name(user_id, connected_users[socket.id].user_id);
+        let msg = get_messages(0, room_name);
+        if(msg[0] && msg[0].from_user == connected_users[socket.id].user_id) is_sent_by_me = true;
         socket.emit('chats', JSON.stringify( chts ));
         for (const key in user_chats[user_id]) {
           if (Object.hasOwnProperty.call(user_chats[user_id], key)) {
             const element = user_chats[user_id][key];
-            // user_chats[user_id][key]["new_message"] = "";
+            if(is_sent_by_me == false) user_chats[user_id][key]["new_message"] = "";
           }
         }
         write();
@@ -133,9 +137,9 @@ io.on('connection', (socket) =>{
           store_message(user_id, to_user, message);
           if((user_id in user_chats) == false) user_chats[user_id] = {};
           if((to_user in user_chats) == false) user_chats[to_user] = {};
-          if((to_user in user_chats[user_id]) == false) user_chats[user_id][to_user] = {new_message:"", latest_messages:{}};
-          if((user_id in user_chats[to_user]) == false) user_chats[to_user][user_id] = {new_message:"", latest_messages:{}};
-
+          if((to_user in user_chats[user_id]) == false) user_chats[user_id][to_user] = {new_message:"", latest_message:message};
+          if((user_id in user_chats[to_user]) == false) user_chats[to_user][user_id] = {new_message:"", latest_message:message};
+         
           // check if the reciever is connected
           if( to_user in connected_users_ids ){
 
@@ -157,6 +161,8 @@ io.on('connection', (socket) =>{
             notify(to_user, "you have a new message", message);
             user_chats[user_id][to_user].new_message = message;
           }
+          if(user_chats[to_user][user_id]) user_chats[to_user][user_id].latest_message = message;
+          if(user_chats[user_id][to_user]) user_chats[user_id][to_user].latest_message = message;
           write();
 
       });
@@ -222,16 +228,16 @@ async function store_message(from_user, to_user, message){
       "time" : Math.round(Date.now() / 1000)
     }];
   }
-     const rawResponse = await fetch(UPDATING_MESSAGES_LIST_URL, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({from: from_user, to: to_user, latest_message: message})
-    });
-    const content = await rawResponse.json();
-    console.log(content);
+    //  const rawResponse = await fetch(UPDATING_MESSAGES_LIST_URL, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Accept': 'application/json',
+    //     'Content-Type': 'application/json'
+    //   },
+    //   body: JSON.stringify({from: from_user, to: to_user, latest_message: message})
+    // });
+    // const content = await rawResponse.json();
+    // console.log(content);
     write();
     return content;
 }
