@@ -109,10 +109,8 @@ io.on('connection', (socket) =>{
       socket.on("disconnect", ()=>{
         delete connected_users_ids[connected_users[socket.id].user_id];
         delete connected_users[socket.id];
-      });
-      socket.on("get-connected", ()=>{
         console.log(connected_users_ids);
-      })
+      });
 
       socket.on('get-chats', async() =>{
         let chts = await get_user_chats(user_id);
