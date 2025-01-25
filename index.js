@@ -154,8 +154,8 @@ io.on('connection', (socket) =>{
             }
           }else{  
             console.log("notifying user");
-            
-              notify(to_user, "you have a new message", message);
+            notify(to_user, "you have a new message", message);
+            user_chats[user_id][to_user].new_message = message;
           }
           write();
 
