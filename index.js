@@ -66,7 +66,6 @@ const datapath = __dirname+"/total_data.json";
 const dt = read(datapath);
 if(dt){
   connected_users = dt.connected_users
-  connected_users_ids = dt.connected_users_ids
   user_chats = dt.user_chats
   messages = dt.messages
   user_assets = dt.user_assets
@@ -151,7 +150,6 @@ io.on('connection', (socket) =>{
                 message: message,
                 from_user: user_id,
               });
-              
               user_chats[user_id][to_user].new_message = message;
             }
           }else{  
@@ -180,7 +178,6 @@ var server = http.listen(3000, () => {
 function write(){
   let dt = {};
   dt.connected_users = connected_users
-  dt.connected_users_ids = connected_users_ids 
   dt.user_chats = user_chats
   dt.messages = messages 
   dt.user_assets = user_assets 
