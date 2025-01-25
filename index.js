@@ -115,13 +115,13 @@ io.on('connection', (socket) =>{
       socket.on('get-chats', async() =>{
         let chts = await get_user_chats(user_id);
         let is_sent_by_me = false;
-        let room_name = get_room_name(user_id, connected_users[socket.id].user_id);
-        let msg = get_messages(0, room_name);
-        if(msg[0] && msg[0].from_user == connected_users[socket.id].user_id) is_sent_by_me = true;
-        socket.emit('chats', JSON.stringify( chts ));
         for (const key in user_chats[user_id]) {
           if (Object.hasOwnProperty.call(user_chats[user_id], key)) {
             const element = user_chats[user_id][key];
+            let room_name = get_room_name(user_id, key);
+            let msg = get_messages(0, room_name);
+            if(msg["0"] && msg["0"].from_user == user_id) is_sent_by_me = true;
+            socket.emit('chats', JSON.stringify( chts ));
             if(is_sent_by_me == false) user_chats[user_id][key]["new_message"] = "";
           }
         }
