@@ -121,8 +121,8 @@ io.on('connection', (socket) =>{
             let room_name = get_room_name(user_id, key);
             let msg = get_messages(0, room_name);
             if(msg["0"] && msg["0"].from_user == user_id) is_sent_by_me = true;
+            user_chats[user_id][key]["new_message"] = "";
             socket.emit('chats', JSON.stringify( chts ));
-            if(is_sent_by_me == false) user_chats[user_id][key]["new_message"] = "";
           }
         }
         write();
@@ -154,12 +154,12 @@ io.on('connection', (socket) =>{
                 message: message,
                 from_user: user_id,
               });
-              user_chats[user_id][to_user].new_message = message;
+              user_chats[to_user][user_id].new_message = message;
             }
           }else{  
             console.log("notifying user");
             notify(to_user, "you have a new message", message);
-            user_chats[user_id][to_user].new_message = message;
+            user_chats[to_user][user_id].new_message = message;
           }
           if(user_chats[to_user][user_id]) user_chats[to_user][user_id].latest_message = message;
           if(user_chats[user_id][to_user]) user_chats[user_id][to_user].latest_message = message;
@@ -239,7 +239,7 @@ async function store_message(from_user, to_user, message){
     // const content = await rawResponse.json();
     // console.log(content);
     write();
-    return content;
+    // return content;
 }
 
 function get_messages(_from, room_name){
