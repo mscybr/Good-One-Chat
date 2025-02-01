@@ -107,7 +107,7 @@ io.on('connection', (socket) =>{
       });
 
       socket.on("disconnect", ()=>{
-        delete connected_users_ids[connected_users[socket.id].user_id];
+        delete connected_users_ids[connected_users[socket.id]];
         delete connected_users[socket.id];
         console.log(connected_users_ids);
       });
